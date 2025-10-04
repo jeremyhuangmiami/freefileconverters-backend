@@ -1,6 +1,7 @@
 /**
  * FreeFileConverters Backend Server
  * Handles file upload and conversion using various tools
+ * With CORS domain restrictions for security
  */
 
 const express = require('express');
@@ -16,8 +17,38 @@ const execPromise = util.promisify(exec);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(cors());
+// CORS Configuration - Restrict to your domain only
+const corsOptions = {
+  origin: function (origin, callback) {
+    // List of allowed origins (UPDATE THESE WITH YOUR ACTUAL DOMAINS)
+    const allowedOrigins = [
+      'https://freefileconverters.pages.dev', // Your Cloudflare Pages domain
+      'https://www.yoursite.com',             // Your custom domain (with www)
+      'https://yoursite.com',                 // Your custom domain (without www)
+      'http://localhost:8000',                // Local development
+      'http://localhost:3000',                // Alternative local port
+      'http://127.0.0.1:8000'                 // Alternative localhost
+    ];
+    
+    // Allow requests with no origin (like mobile apps, Postman, or curl)
+    if (!origin) return callback(null, true);
+    
+    // Check if origin is in allowed list
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log(`Blocked request from unauthorized origin: ${origin}`);
+      callback(new Error('Not allowed by CORS - Invalid origin'));
+    }
+  },
+  credentials: true, // Allow cookies if needed
+  optionsSuccessStatus: 200,
+  methods: ['GET', 'POST'], // Only allow these HTTP methods
+  allowedHeaders: ['Content-Type', 'Authorization'] // Only allow these headers
+};
+
+// Apply CORS middleware with restrictions
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Configure multer for file uploads (temp storage)
@@ -296,7 +327,8 @@ app.get('/', (req, res) => {
   res.json({ 
     status: 'online',
     service: 'FreeFileConverters API',
-    version: '1.0.0'
+    version: '1.0.0',
+    timestamp: new Date().toISOString()
   });
 });
 
@@ -304,7 +336,30 @@ app.get('/', (req, res) => {
  * GET /health - Health check endpoint
  */
 app.get('/health', (req, res) => {
-  res.json({ status: 'healthy', timestamp: new Date().toISOString() });
+  res.json({ 
+    status: 'healthy', 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
+/**
+ * Error handling middleware
+ */
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  
+  if (err.message === 'Not allowed by CORS - Invalid origin') {
+    return res.status(403).json({ 
+      error: 'Access denied - Invalid origin',
+      message: 'This API only accepts requests from authorized domains'
+    });
+  }
+  
+  res.status(500).json({ 
+    error: 'Internal server error',
+    message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
+  });
 });
 
 /**
@@ -313,4 +368,5 @@ app.get('/health', (req, res) => {
 app.listen(PORT, () => {
   console.log(`✓ FreeFileConverters backend running on port ${PORT}`);
   console.log(`✓ Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`✓ CORS enabled for authorized domains only`);
 });
