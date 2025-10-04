@@ -298,11 +298,14 @@ app.post('/convert', upload.single('file'), async (req, res) => {
     
     // Send the converted file
     res.download(outputPath, `converted.${targetFormat}`, async (err) => {
-      // Cleanup both input and output files after download
+      // ✅ AUTOMATIC FILE CLEANUP: Files are deleted immediately after download
+      // This ensures user privacy - no files are stored on the server
       await cleanupFiles(inputPath, outputPath);
       
       if (err) {
         console.error('Download error:', err);
+      } else {
+        console.log(`✓ Conversion complete. Files deleted from server.`);
       }
     });
     
