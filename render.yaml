@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: freefileconverters-backend
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: |
+      # Install Node dependencies
+      npm install
+      
+      # Update package lists
+      apt-get update
+      
+      # Install system dependencies for file conversion
+      apt-get install -y imagemagick ffmpeg
+      
+      # Install LibreOffice and its dependencies
+      apt-get install -y libreoffice libreoffice-writer libreoffice-calc libreoffice-impress
+      
+      # Verify installations
+      which convert && echo "✓ ImageMagick installed"
+      which ffmpeg && echo "✓ FFmpeg installed"
+      which libreoffice && echo "✓ LibreOffice installed"
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+    healthCheckPath: /health
+    autoDeploy: true
