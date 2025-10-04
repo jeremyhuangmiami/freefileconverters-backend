@@ -22,7 +22,8 @@ const corsOptions = {
   origin: function (origin, callback) {
     // List of allowed origins (UPDATE THESE WITH YOUR ACTUAL DOMAINS)
     const allowedOrigins = [
-      'https://freefileconverters.pages.dev', // Your Cloudflare Pages domain
+      'https://jeremyhuangmiami.github.io',    // Your GitHub Pages domain
+      'https://freefileconverters.pages.dev', // Your Cloudflare Pages domain (if using)
       'https://www.yoursite.com',             // Your custom domain (with www)
       'https://yoursite.com',                 // Your custom domain (without www)
       'http://localhost:8000',                // Local development
