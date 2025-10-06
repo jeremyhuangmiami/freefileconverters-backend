@@ -59,7 +59,7 @@ async function performConversion(sourcePath, targetPath, sourceExt, targetExt) {
     if (sourceCat === targetCat) {
       if (sourceCat === 'image') {
         // Image to Image
-        command = `magick "${sourcePath}" "${targetPath}"`;
+        command = `convert "${sourcePath}" "${targetPath}"`;
         await execAsync(command, { timeout: 60000 });
         outputFiles = [targetPath];
       } 
@@ -307,21 +307,7 @@ app.use((error, req, res, next) => {
   console.error('Server error:', error);
   res.status(500).json({ error: 'Internal server error' });
 });
-// Add this before the PORT line
-app.get('/test-tools', async (req, res) => {
-  try {
-    const magick = await execAsync('which magick');
-    const libreoffice = await execAsync('which libreoffice');
-    const ffmpeg = await execAsync('which ffmpeg');
-    res.json({
-      magick: magick.stdout,
-      libreoffice: libreoffice.stdout,
-      ffmpeg: ffmpeg.stdout
-    });
-  } catch (error) {
-    res.json({ error: error.message });
-  }
-});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
