@@ -1,6 +1,6 @@
 FROM node:18-bullseye
 
-# Update package lists and install dependencies
+# Update package lists and install dependencies including Java
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     imagemagick \
@@ -9,14 +9,20 @@ RUN apt-get update && \
     libreoffice-writer \
     libreoffice-calc \
     libreoffice-impress \
+    libreoffice-java-common \
+    default-jre-headless \
     fonts-liberation \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+# Configure ImageMagick to allow PDF operations
+RUN sed -i 's/<policy domain="coder" rights="none" pattern="PDF" \/>/<policy domain="coder" rights="read|write" pattern="PDF" \/>/g' /etc/ImageMagick-6/policy.xml
+
 # Verify installations
 RUN which convert && \
     which libreoffice && \
-    which ffmpeg
+    which ffmpeg && \
+    which java
 
 # Set working directory
 WORKDIR /app
